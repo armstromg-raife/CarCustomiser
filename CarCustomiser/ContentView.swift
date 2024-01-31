@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct ContentView: View {
     @State private var starterCars = StarterCars()
     @State private var selectedCar: Int=0
@@ -15,37 +16,42 @@ struct ContentView: View {
     @State private var nitroPakage = false
     @State private var suspentionPakage = false
     @State private var remainingFunds: Int = 1000
-
-    var funds5:Bool{
-        if remainingFunds>=500{
-            return false
-        }else{
-            return true
-        }
-    }
-    var funds75:Bool{
-        if remainingFunds>=750{
-            return false
-        }else{
-            return true
-        }
-    }
+    @State private var time=500.00
     
+    func startTimer() {
+        Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true){_ in
+            if time>0.001{
+                time-=0.01
+            }
+            }
+    }
+        
+    var exhaustPakageEnabled:Bool{
+        return exhaustPakage ? false : remainingFunds >= 500 ? false : true
+    }
+    var tiresPakageEnabled:Bool{
+        return tiresPakage ? false : remainingFunds >= 500 ? false : true
+    }
+    var suspentionPakageEnabled:Bool{
+        return suspentionPakage ? false : remainingFunds >= 500 ? false : true
+    }
+    var nitroPakageEnabled:Bool{
+        return nitroPakage ? false : remainingFunds >= 750 ? false : true
+    }
     var body: some View {
+        
         let exhaustPakageBinding = Binding<Bool>(
             get: {self.exhaustPakage},
             set: {newValue in
+                if time>0.001{
                 self.exhaustPakage=newValue
-                if newValue==true{
-                    if remainingFunds>=500{
+                    if newValue==true{
                         starterCars.cars[selectedCar].exhaustOn()
                         remainingFunds-=500
-                    }else{
-                        exhaustPakage=false
+                    } else{
+                        starterCars.cars[selectedCar].exhaustOff()
+                        remainingFunds+=500
                     }
-                } else{
-                    starterCars.cars[selectedCar].exhaustOff()
-                    remainingFunds+=500
                 }
                 
             }
@@ -53,35 +59,30 @@ struct ContentView: View {
         let tiresPakageBinding = Binding<Bool>(
             get: {self.tiresPakage},
             set: {newValue in
+                if time>0.001{
                 self.tiresPakage=newValue
-                if newValue==true{
-                    if remainingFunds>=500{
+                    if newValue==true{
                         starterCars.cars[selectedCar].tiresOn()
                         remainingFunds-=500
-                    }else{
-                        tiresPakage=false
+                    } else{
+                        starterCars.cars[selectedCar].tiresOff()
+                        remainingFunds+=500
                     }
-                } else{
-                    starterCars.cars[selectedCar].tiresOff()
-                    remainingFunds+=500
                 }
-                
             }
         )
         let nitroPakageBinding = Binding<Bool>(
             get: {self.nitroPakage},
             set: {newValue in
-                self.nitroPakage=newValue
-                if newValue==true{
-                    if remainingFunds>=750{
+                if time>=0.001{
+                    self.nitroPakage=newValue
+                    if newValue==true{
                         starterCars.cars[selectedCar].nitroOn()
                         remainingFunds-=750
-                    }else{
-                        nitroPakage=false
+                    } else{
+                        starterCars.cars[selectedCar].nitroOff()
+                        remainingFunds+=750
                     }
-                } else{
-                    starterCars.cars[selectedCar].nitroOff()
-                    remainingFunds+=750
                 }
                 
             }
@@ -89,25 +90,30 @@ struct ContentView: View {
         let suspentionPakageBinding = Binding<Bool>(
             get: {self.suspentionPakage},
             set: {newValue in
+                if time>=0.001{
                 self.suspentionPakage=newValue
-                if newValue==true{
-                    if remainingFunds>=500{
-                        starterCars.cars[selectedCar].suspentionOn()
-                        remainingFunds-=500
-                    }else{
-                        suspentionPakage=false
+                    if newValue==true{
+                        
+                            starterCars.cars[selectedCar].suspentionOn()
+                            remainingFunds-=500
+                        
+                        
+                    } else{
+                        starterCars.cars[selectedCar].suspentionOff()
+                        remainingFunds+=500
                     }
-                } else{
-                    starterCars.cars[selectedCar].suspentionOff()
-                    remainingFunds+=500
                 }
                 
             }
         )
         VStack{
+            
             Form {
+                
                 VStack(alignment: .leading,spacing:20){
+                    
                     Text("\(starterCars.cars[selectedCar].statsPage())")
+                    
                     Button("Next car") {
                         
                         resetPage()
@@ -118,13 +124,13 @@ struct ContentView: View {
                 
                 Section {
                     Toggle("Exhaust pakage (Cost:500)", isOn: exhaustPakageBinding)
-                        //.disabled(funds5)
+                        .disabled(exhaustPakageEnabled)
                     Toggle("Tires pakage (Cost:500)", isOn: tiresPakageBinding)
-                        //.disabled(funds5)
+                        .disabled(tiresPakageEnabled)
                     Toggle("Suspention pakage (Cost:500)", isOn: suspentionPakageBinding)
-                        //.disabled(funds5)
+                        .disabled(suspentionPakageEnabled)
                     Toggle("Nitro pakage (Cost:750)", isOn: nitroPakageBinding)
-                        //.disabled(funds75)
+                        .disabled(nitroPakageEnabled)
                     
                 }
                 
@@ -132,7 +138,13 @@ struct ContentView: View {
                     .foregroundColor(.red)
                     .baselineOffset(20)
                 
+                Text("Remaining time: \(String(format:"%.2f",time)) seconds")
+                
             }
+            
+        }
+        .onAppear {
+            startTimer()
         }
         
     }
@@ -154,6 +166,8 @@ struct ContentView: View {
             nitroPakage=false
         }
         remainingFunds=1000
+        
+
     }
 }
 

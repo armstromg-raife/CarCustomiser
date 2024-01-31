@@ -8,11 +8,11 @@
 import Foundation
 
 struct Car {
-    private let make:String
-    private let model:String
-    private var topSpeed:Int
-    private var acceleration:Double
-    private var handling:Int
+     let make:String
+     let model:String
+     var topSpeed:Int
+     var acceleration:Double
+     var handling:Int
     
     init(make: String, model: String, topSpeed: Int, acceleration: Double, handling: Int) {
         self.make = make
